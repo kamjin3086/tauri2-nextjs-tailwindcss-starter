@@ -1,0 +1,56 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 开发指南
+
+## 渲染模式注意事项
+
+### 静态站点生成（SSG）
+- 本项目使用Next.js的静态站点生成（SSG）而非服务器端渲染（SSR），因为Tauri应用不支持SSR（需要Node.js服务器）
+- 配置文件[next.config.ts](mdc:next.config.ts)中设置了`output: "export"`以启用静态导出
+- 请参考[Next.js静态导出文档](mdc:https:/nextjs.org/docs/app/building-your-application/deploying/static-exports)了解支持和不支持的功能
+
+### 图片优化
+- [next.config.ts](mdc:next.config.ts)中设置了`images: { unoptimized: true }`
+- 这意味着`next/image`组件将按原样提供图像，不会更改其质量、大小或格式
+- 这是因为Tauri应用不支持Next.js的服务器端图像优化
+
+## 客户端与服务器端代码
+
+### 避免全局导入Tauri API
+- 不要在组件外部或页面顶层导入Tauri API，这会导致`ReferenceError: window/navigator is not defined`错误
+- 正确做法是在客户端组件内部使用，并确保添加`"use client"`声明
+
+### 正确使用Tauri API的方法
+1. 在组件中使用`useEffect`钩子内部导入和使用Tauri API
+2. 使用动态导入`import()`按需加载Tauri模块
+3. 确保所有使用Tauri API的组件都添加了`"use client"`标记
+
+```tsx
+"use client";
+import { useEffect, useState } from "react";
+
+export default function TauriComponent() {
+  const [data, setData] = useState<string>("");
+  
+  useEffect(() => {
+    // 正确：在客户端运行时导入Tauri API
+    const loadTauriAPI = async () => {
+      const { invoke } = await import("@tauri-apps/api");
+      const result = await invoke("some_command");
+      setData(result);
+    };
+    
+    loadTauriAPI();
+  }, []);
+  
+  return <div>{data}</div>;
+}
+```
+
+## TailwindCSS使用规范
+- 优先使用TailwindCSS提供的原子类，避免自定义CSS
+- 对于重复使用的组件样式，考虑使用TailwindCSS的`@apply`指令或创建可复用组件
+

@@ -1,0 +1,79 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Tauri集成指南
+
+## Tauri配置
+
+主要配置文件位于[src-tauri/tauri.conf.json](mdc:src-tauri/tauri.conf.json)，定义了应用程序的标识符、窗口设置、构建配置等。
+
+## 前后端通信
+
+### 基于命令的通信
+Tauri使用命令（commands）系统在Rust后端和TypeScript/JavaScript前端之间进行通信。
+
+#### Rust后端定义命令
+```rust
+#[tauri::command]
+fn greet(name: &str) -> String {
+    format!("Hello, {}!", name)
+}
+
+fn main() {
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![greet])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+```
+
+#### 前端调用命令
+```tsx
+"use client";
+import { useEffect, useState } from "react";
+
+export default function GreetComponent() {
+  const [message, setMessage] = useState<string>("");
+  
+  useEffect(() => {
+    const greetUser = async () => {
+      const { invoke } = await import("@tauri-apps/api");
+      const response = await invoke("greet", { name: "Tauri User" });
+      setMessage(response as string);
+    };
+    
+    greetUser();
+  }, []);
+  
+  return <div>{message}</div>;
+}
+```
+
+## 权限系统
+
+Tauri 2.0引入了细粒度的权限系统，允许用户控制应用程序对系统资源的访问。确保在[src-tauri/tauri.conf.json](mdc:src-tauri/tauri.conf.json)中适当配置权限：
+
+```json
+{
+  "tauri": {
+    "allowlist": {
+      "fs": {
+        "scope": ["$APPDATA/*", "$DOWNLOAD/*"],
+        "readFile": true,
+        "writeFile": true
+      }
+    }
+  }
+}
+```
+
+## 插件系统
+
+Tauri支持插件系统以扩展功能。在[package.json](mdc:package.json)中，已经包含了一些Tauri插件：
+
+- `@tauri-apps/plugin-opener` - 用于打开外部URL或文件
+
+添加新插件时，请同时更新前端和后端的依赖。
+

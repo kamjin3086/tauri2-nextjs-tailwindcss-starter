@@ -1,0 +1,64 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 依赖管理规则
+
+## Tauri版本冲突解决
+
+当前项目出现的编译错误是由于Tauri相关依赖的版本冲突导致的。错误主要表现为`windows`和`webview2_com_sys`这两个crate的不同版本同时存在于依赖树中。
+
+### 解决方案
+
+1. **锁定依赖版本**
+
+   在`src-tauri/Cargo.toml`文件中添加以下内容，明确指定依赖版本：
+
+   ```toml
+   [dependencies]
+   # 其他依赖...
+
+   # 锁定windows版本
+   windows = "=0.61.1"
+   
+   [patch.crates-io]
+   # 锁定webview2-com-sys版本
+   webview2-com-sys = "=0.37.0"
+   ```
+
+2. **清理cargo缓存并重新构建**
+
+   运行以下命令清理缓存并重新构建：
+
+   ```bash
+   cd src-tauri
+   cargo clean
+   cargo update
+   cd ..
+   pnpm tauri dev
+   ```
+
+3. **检查插件兼容性**
+
+   确保所有Tauri插件的版本与Tauri主版本兼容：
+
+   ```toml
+   [dependencies]
+   tauri = "2.4.1"
+   tauri-plugin-opener = "2.2.6" # 确保插件版本兼容
+   ```
+
+## 防止未来版本冲突
+
+为避免将来出现类似问题，请遵循以下规则：
+
+1. 添加新的Tauri插件时，确保其版本与当前Tauri核心版本兼容
+2. 当升级Tauri版本时，同时升级所有Tauri相关插件
+3. 使用`cargo tree -d`命令检查依赖树中的重复依赖
+4. 定期运行`cargo update`并测试应用，以确保依赖兼容性
+
+## 项目冻结依赖方案
+
+在项目稳定阶段，可以考虑使用`cargo-lock`工具锁定所有依赖版本，确保构建稳定性。
+
