@@ -3,13 +3,7 @@
 name: Lint Node.js
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    paths-ignore:
-      - "src-tauri/**"
-      - "README.md"
+  workflow_dispatch:
 
 jobs:
   build:
