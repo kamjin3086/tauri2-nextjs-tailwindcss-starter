@@ -114,4 +114,4 @@ And to learn more about Tauri, take a look at the following resources:
 - [Tauri Documentation - Guides](https://v2.tauri.app/start/) - learn about the Tauri
   toolkit.
 
-Fork from the repository: (tauri-nextjs-template)[https://github.com/kvnxiao/tauri-nextjs-template]
+Fork from the repository: [tauri-nextjs-template](https://github.com/kvnxiao/tauri-nextjs-template)
